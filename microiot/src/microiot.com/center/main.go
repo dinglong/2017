@@ -1,7 +1,11 @@
 package main
 
-import fmt "fmt"
+import (
+    "microiot.com/center/restserver"
+    "microiot.com/center/restserver/services"
+)
 
 func main() {
-	fmt.Print("hello microiot\n")
+    restserver.RegisterService(services.HelloService{})
+    restserver.Run()
 }
