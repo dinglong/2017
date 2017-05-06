@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ${#} != 2 ]; then
+if [ ${#} != 1 ]; then
 	echo "usage: ${0} <install | clean>"
 	exit 1
 fi
