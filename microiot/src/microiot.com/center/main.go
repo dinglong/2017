@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
-    restserver.RegisterService(services.HelloService{})
-    restserver.Run()
+    server := restserver.New()
+    server.AddService(services.NewHelloService())
+    server.Run()
 }

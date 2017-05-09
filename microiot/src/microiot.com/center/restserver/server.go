@@ -5,22 +5,13 @@ import (
     "net/http"
 
     "github.com/emicklei/go-restful"
+    "fmt"
 )
 
-var webService *restful.WebService
-
-/**
- * 初始化WebService
- */
-func init() {
-    webService = new(restful.WebService)
-
-    // 设置webservice的属性: 基本路径，接受的数据类型，输出的数据类型
-    webService.Path("/microiot").
-        Doc("microiot rest interface").
-        Consumes(restful.MIME_XML, restful.MIME_JSON).
-        Produces(restful.MIME_JSON, restful.MIME_XML)
-}
+const (
+    PREFIX_URL  = "/apis/microiot/v1"
+    LISTEN_PORT = 8180
+)
 
 /**
  * 定义服务接口，实现此接口即可注册到该RestService中
@@ -31,34 +22,62 @@ type Service interface {
 }
 
 /**
- * 向RestService中注册一个Service的实现者
+ * 定义MicroIotRestServer
  */
-func RegisterService(service Service) {
-    log.Printf("register service %s\n", service.Name())
-    service.Register(webService)
+type MicroIotRestServer struct {
+    container *restful.Container
+    services  []Service
+}
+
+/**
+ * 构造一个MicroIotRestServer
+ */
+func New() (restServer *MicroIotRestServer) {
+    restServer = &MicroIotRestServer{
+        container: restful.NewContainer(),
+    }
+    restServer.container.Filter(requestFilter)
+    return restServer
+}
+
+/**
+ * 添加具体的Rest服务
+ */
+func (restServer *MicroIotRestServer) AddService(s interface{}) {
+    if service, ok := s.(Service); ok {
+        log.Printf("add service %s\n", service.Name())
+        restServer.services = append(restServer.services, service)
+    }
 }
 
 /**
  * 启动Rest服务
  */
-func Run() {
-    // 创建容器
-    wsContainer := restful.NewContainer()
-    wsContainer.Filter(globalFilter)
+func (restServer *MicroIotRestServer) Run() {
+    webService := new(restful.WebService)
+    webService.Path(PREFIX_URL)
+    webService.Produces(restful.MIME_JSON)
+
+    log.Printf("service size %d\n", len(restServer.services))
+
+    for i, service := range restServer.services {
+        service.Register(webService)
+        log.Printf("register service %d : %s\n", i, service.Name())
+    }
 
     // 加入服务到容器中
-    wsContainer.Add(webService)
+    restServer.container.Add(webService)
 
     // 启动服务
-    log.Println("start listening on 8080")
-    server := &http.Server{Addr: ":8080", Handler: wsContainer}
+    log.Printf("start listening on %d\n", LISTEN_PORT)
+    server := &http.Server{Addr: fmt.Sprintf(":%d", LISTEN_PORT), Handler: restServer.container}
     server.ListenAndServe()
 }
 
 /**
  * 全局filter，用户诊断访问
  */
-func globalFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
-    log.Printf("global filter %s, %s\n", req.Request.Method, req.Request.URL)
+func requestFilter(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+    log.Printf("request filter %s, %s\n", req.Request.Method, req.Request.URL)
     chain.ProcessFilter(req, resp)
 }

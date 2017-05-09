@@ -6,7 +6,16 @@ import (
     "log"
 )
 
-type HelloService struct{}
+type HelloService struct {
+    name string
+}
+
+func NewHelloService() (service HelloService) {
+    service = HelloService{
+        name: "HelloService",
+    }
+    return service
+}
 
 func (HelloService) Name() string {
     return "HelloService"
