@@ -8,5 +8,6 @@ import (
 func main() {
 	server := restserver.New()
 	server.AddService(services.NewAuthService())
+	server.AddService(services.NewEventService())
 	server.Run()
 }
