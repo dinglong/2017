@@ -5,8 +5,11 @@ import (
 
 	"anthserver/token"
 
+	"fmt"
 	"github.com/emicklei/go-restful"
 	"net/http"
+	"net/http/httputil"
+	"time"
 )
 
 type AuthService struct {
@@ -30,7 +33,15 @@ func (a AuthService) Register(webService *restful.WebService) {
 }
 
 func getToken(req *restful.Request, resp *restful.Response) {
-	log.Printf("token function req [%v]\n", req)
+	dump, err := httputil.DumpRequest(req.Request, true)
+	if err != nil {
+		log.Printf("dump request error %v\n", err)
+		http.Error(resp, fmt.Sprint(err), http.StatusInternalServerError)
+		return
+	}
+	log.Printf("%q", dump)
+
+	time.Sleep(10 * time.Second)
 
 	scopes := token.ParseScopes(req.Request.URL)
 	access := token.GetResourceActions(scopes)
