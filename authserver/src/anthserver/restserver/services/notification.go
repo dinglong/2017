@@ -1,11 +1,11 @@
 package services
 
 import (
+	"io/ioutil"
 	"log"
+	"net/http"
 
 	"github.com/emicklei/go-restful"
-	"io/ioutil"
-	"net/http"
 )
 
 type EventService struct {
@@ -30,6 +30,8 @@ func (e EventService) Register(webService *restful.WebService) {
 
 func revcEvent(req *restful.Request, resp *restful.Response) {
 	log.Printf("event function req [%v]\n", req)
+
+	// time.Sleep(100 * time.Second)
 
 	// print body
 	if data, err := ioutil.ReadAll(req.Request.Body); err != nil {
