@@ -34,6 +34,14 @@ func (a AuthService) Register(webService *restful.WebService) {
 }
 
 func getToken(req *restful.Request, resp *restful.Response) {
+	// client address
+	log.Printf("client address: %s\n", req.Request.RemoteAddr)
+
+	if strings.HasPrefix(req.Request.RemoteAddr, "192.168.1.50") {
+		// http.Error(resp, fmt.Sprint("1.50"), http.StatusInternalServerError)
+		// return
+	}
+
 	// dump http request header
 	dump, err := httputil.DumpRequest(req.Request, true)
 	if err != nil {
@@ -48,7 +56,9 @@ func getToken(req *restful.Request, resp *restful.Response) {
 	if u, p, ok := parseBasicAuth(auth); ok {
 		log.Printf("username: %s, password: %s\n", u, p)
 	} else {
-		log.Printf("parse basuc auth failure")
+		log.Printf("parse basic auth failure")
+		// http.Error(resp, fmt.Sprint(err), http.StatusInternalServerError)
+		// return
 	}
 
 	// generate token
