@@ -138,8 +138,10 @@ func prepareLayers(repository string, descriptors []distribution.Descriptor) []L
 }
 
 func main() {
-	mf := registry.ReadManifest("http://192.168.1.50:5000", "test", "1.0.0")
-	ls := prepareLayers("test", mf.References())
+	// mf := registry.ReadManifest("http://192.168.1.50:5000", "test", "1.0.0")
+	// mf := registry.ReadManifest("http://192.168.1.50:5000", "postgress", "1.1.1")
+	mf := registry.ReadManifest("http://192.168.1.50:5000", "clair", "1.1.1")
+	ls := prepareLayers("clair", mf.References())
 
 	for _, l := range ls {
 		fmt.Printf("layer [%v]\n", l)
@@ -156,8 +158,19 @@ func main() {
 			if err != nil {
 				fmt.Printf("err: %v\n", err)
 			} else {
-				fmt.Printf("%s\n", s)
+				prettyPrintJson(s)
 			}
 		}
+	}
+}
+
+func prettyPrintJson(content []byte) {
+	var pretty bytes.Buffer
+	err := json.Indent(&pretty, content, "", "  ")
+	if err != nil {
+		fmt.Printf("pretty json error, %v\n", err)
+		fmt.Printf("%s\n", string(content))
+	} else {
+		fmt.Printf("%s\n", pretty.String())
 	}
 }
