@@ -128,7 +128,8 @@ func prepareLayers(repository string, descriptors []distribution.Descriptor) []L
 			Name:    fmt.Sprintf("%x", sha256.Sum256([]byte(shaChain))),
 			Headers: tokenHeader,
 			Format:  "Docker",
-			Path:    fmt.Sprintf("%s/v2/%s/blobs/%s", "http://registry:5000", repository, string(d.Digest)),
+			Path:    fmt.Sprintf("%s/%s/%s/%s/data", "/storage/docker/registry/v2/blobs", d.Digest.Algorithm(), d.Digest.Hex()[:2], d.Digest.Hex()),
+			// Path: fmt.Sprintf("%s/v2/%s/blobs/%s", "http://registry:5000", repository, string(d.Digest)),
 		}
 		ls = append(ls, l)
 	}
