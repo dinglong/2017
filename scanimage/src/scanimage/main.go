@@ -131,6 +131,9 @@ func prepareLayers(repository string, descriptors []distribution.Descriptor) []L
 			Path:    fmt.Sprintf("%s/%s/%s/%s/data", "/storage/docker/registry/v2/blobs", d.Digest.Algorithm(), d.Digest.Hex()[:2], d.Digest.Hex()),
 			// Path: fmt.Sprintf("%s/v2/%s/blobs/%s", "http://registry:5000", repository, string(d.Digest)),
 		}
+		if len(ls) > 0 {
+			l.ParentName = ls[len(ls)-1].Name
+		}
 		ls = append(ls, l)
 	}
 
@@ -143,23 +146,25 @@ func main() {
 	mf := registry.ReadManifest("http://192.168.1.50:5000", "clair", "1.1.1")
 	ls := prepareLayers("clair", mf.References())
 
+	var lastLayer Layer
 	for _, l := range ls {
 		fmt.Printf("layer [%v]\n", l)
 		err := ScanLayer("http://192.168.1.50:6060", l)
 		if err != nil {
 			fmt.Printf("err: %v\n", err)
 		}
+		lastLayer = l
+	}
 
-		le, err := GetResult("http://192.168.1.50:6060", l.Name)
+	le, err := GetResult("http://192.168.1.50:6060", lastLayer.Name)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+	} else {
+		s, err := json.Marshal(le)
 		if err != nil {
 			fmt.Printf("err: %v\n", err)
 		} else {
-			s, err := json.Marshal(le)
-			if err != nil {
-				fmt.Printf("err: %v\n", err)
-			} else {
-				prettyPrintJson(s)
-			}
+			prettyPrintJson(s)
 		}
 	}
 }
